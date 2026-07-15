@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import hydra
 import numpy as np
 import torch
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 from src.data.splits import train_val_test_split
 from src.eval.runner import aggregate, evaluate
@@ -28,6 +28,24 @@ def pick_device(choice):
     if choice == "auto":
         return "cuda" if torch.cuda.is_available() else "cpu"
     return choice
+
+
+def model_cfg_of(ckpt_path, fallback):
+    """Legge la configurazione del modello dalla run che ha prodotto il checkpoint.
+
+    Hydra salva il config risolto in <run_dir>/.hydra/config.yaml. Usarlo evita di
+    dover ripetere a mano gli override in valutazione: se il checkpoint viene da
+    una run con hidden_channels=24, il modello viene ricostruito con 24 e i pesi
+    si caricano. Senza questo, un override dimenticato darebbe un errore di shape.
+    """
+    saved = os.path.join(os.path.dirname(ckpt_path), ".hydra", "config.yaml")
+    if os.path.exists(saved):
+        cfg = OmegaConf.load(saved)
+        if "model" in cfg:
+            print(f"config del modello letta da {saved}")
+            return cfg.model
+    print("nessun config salvato accanto al checkpoint: uso quello corrente")
+    return fallback
 
 
 def print_table(rows_agg):
@@ -54,18 +72,21 @@ def main(cfg: DictConfig):
     )
     rooms = {"train": train, "val": val, "test": test}[cfg.eval.split]
 
-    nca = NCA(hidden_channels=cfg.model.hidden_channels,
-              mlp_hidden=cfg.model.mlp_hidden,
-              update_prob=cfg.model.update_prob,
-              use_laplacian=cfg.model.use_laplacian).to(device)
+    mcfg = model_cfg_of(cfg.eval.ckpt, cfg.model)
+    nca = NCA(hidden_channels=mcfg.hidden_channels,
+              mlp_hidden=mcfg.mlp_hidden,
+              update_prob=mcfg.update_prob,
+              use_laplacian=mcfg.use_laplacian).to(device)
     ckpt = torch.load(cfg.eval.ckpt, map_location=device)
     nca.load_state_dict(ckpt["nca"])
-    print(f"checkpoint: {cfg.eval.ckpt}  (step {ckpt['step']})")
+    print(f"checkpoint: {cfg.eval.ckpt}  (step {ckpt['step']})  "
+          f"hidden={mcfg.hidden_channels} mlp={mcfg.mlp_hidden} "
+          f"update_prob={mcfg.update_prob} laplacian={mcfg.use_laplacian}")
     print(f"split '{cfg.eval.split}': {len(rooms)} stanze | device={device} "
           f"| {cfg.eval.steps} passi di riparazione")
 
     rows = evaluate(nca, rooms, steps=cfg.eval.steps,
-                    hidden_channels=cfg.model.hidden_channels,
+                    hidden_channels=mcfg.hidden_channels,
                     seeds=tuple(cfg.eval.seeds), device=device,
                     fractions=tuple(cfg.train.damage_fractions))
     agg = aggregate(rows)
