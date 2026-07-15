@@ -31,6 +31,21 @@ def _targeted_damage(selector, **kwargs):
     return apply
 
 
+def _no_damage():
+    """Controllo senza danno: verifica che l'NCA sia un attrattore stabile.
+
+    E' la diagnosi piu' importante: se una stanza intatta non sopravvive a N passi
+    di evoluzione, ogni altro numero e' privo di significato, perche' i fallimenti
+    non si distinguono tra "non sa riparare" e "distrugge quel che trova".
+    """
+    def apply(state, room, rng):
+        mask = torch.zeros((state.shape[0], 1, state.shape[2], state.shape[3]),
+                           dtype=torch.bool, device=state.device)
+        return state, mask
+    return apply
+
+
+
 def _has_articulation(room):
     return bool(articulation_points(room).any())
 
@@ -44,7 +59,7 @@ def damage_suite(fractions=(0.2, 0.4, 0.6)):
     aperte di Zelda spesso non ci sono.
     """
     always = lambda room: True
-    suite = []
+    suite = [("A0_none", 0, _no_damage(), always, True)]
     for f in fractions:
         suite.append(("A1_erasure", f, _stochastic_damage(erasure, f), always, True))
         suite.append(("A2_tileflip", f, _stochastic_damage(tile_flip, f), always, True))
