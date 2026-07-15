@@ -1,0 +1,5 @@
+# Valutazione di un checkpoint.
+ckpt: ???              # obbligatorio: percorso del checkpoint da valutare
+split: test            # train|val|test. Usa 'val' per le ablation, 'test' solo per il report
+steps: 96              # passi di riparazione dell'NCA in inferenza
+seeds: [1, 2, 3]       # ripetizioni del danno, per la media +/- deviazione standard
