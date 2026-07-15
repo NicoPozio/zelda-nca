@@ -1,4 +1,4 @@
-# Python-generated files
+# Python
 __pycache__/
 *.py[oc]
 build/
@@ -6,5 +6,13 @@ dist/
 wheels/
 *.egg-info
 
-# Virtual environments
-.venv
+# Ambiente virtuale
+.venv/
+
+# Test e tool
+.pytest_cache/
+
+# Output rigenerabili
+outputs/            # run di Hydra
+data/processed/     # cache dataset, si rigenera con prepare_data.py
+checkpoints/

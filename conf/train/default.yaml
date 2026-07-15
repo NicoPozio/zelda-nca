@@ -1,26 +1,20 @@
 # Iperparametri del training dell'NCA.
 
-lr: 1.0e-3             # learning rate di Adam
-steps: 8000            # numero di iterazioni di ottimizzazione
-batch_size: 8          # stanze per batch, pescate dal sample pool
+lr: 1.0e-3            # learning rate di Adam
+steps: 8000           # da calibrare con la smoke run, non e' un valore del paper
+batch_size: 8         # confermato dal paper Growing NCA
+pool_size: 1024       # confermato dal paper
 
-# Sample pool: buffer di stati persistenti da cui si pescano i batch.
-pool_size: 1024
+# BPTT: srotolamento di lunghezza variabile in [bptt_min, bptt_max].
+bptt_min: 64          # confermato dal paper
+bptt_max: 96          # confermato dal paper
 
-# Backpropagation through time: a ogni iterazione si srotola l'NCA per un numero
-# di passi campionato a caso in [bptt_min, bptt_max]. Variare l'orizzonte aiuta la
-# stabilita' ed e' una delle ablation.
-bptt_min: 64
-bptt_max: 96
+grad_clip: 1.0        # clip della norma del gradiente contro l'exploding
 
-# Difesa contro l'exploding gradient: norma massima del gradiente prima dello step.
-grad_clip: 1.0
+# Danno stocastico applicato in training (mai i danni mirati).
+damage_prob: 0.5
+damage_fractions: [0.2, 0.4, 0.6]
 
-# Ogni quanti step salvare un checkpoint (per riprendere le sessioni Kaggle interrotte).
+log_every: 100        # ogni quanti step stampare la loss
 checkpoint_every: 1000
-
-# Run corta di prova: se > 0, sovrascrive 'steps' con questo valore per misurare
-# il tempo/step reale prima di lanciare i training lunghi. 0 = disattivata.
-smoke_steps: 0
-damage_prob: 0.5              # frazione del batch a cui applicare danno stocastico
-damage_fractions: [0.2, 0.4, 0.6]   # estensioni del danno di training tra cui campionare
+smoke_steps: 0        # se > 0 sovrascrive 'steps' per misurare il tempo/step

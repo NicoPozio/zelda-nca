@@ -79,7 +79,7 @@ def main(cfg: DictConfig):
     while trainer.step < steps:
         loss = trainer.train_step()
         writer.add_scalar("loss/train", loss, trainer.step)
-        if trainer.step % 100 == 0:
+        if cfg.train.log_every and trainer.step % cfg.train.log_every == 0:
             print(f"step {trainer.step}  loss {loss:.4f}")
         if cfg.train.checkpoint_every and trainer.step % cfg.train.checkpoint_every == 0:
             trainer.save(ckpt)
