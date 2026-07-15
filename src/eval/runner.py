@@ -11,6 +11,8 @@ from __future__ import annotations
 import numpy as np
 import torch
 
+from src.metrics.connectivity import access_mask
+from src.tiles import walkable_mask
 from src.damage.stochastic import erasure, tile_flip
 from src.damage.targeted import TARGETED, articulation_points, kill_cells
 from src.metrics.connectivity import rsr, tile_accuracy
@@ -30,6 +32,25 @@ def _targeted_damage(selector, **kwargs):
         return kill_cells(state, selector(room, rng, **kwargs))
     return apply
 
+def _matched_random(selector, **kwargs):
+    """Controllo ad estensione appaiata: uccide lo stesso NUMERO di celle di un
+    danno mirato, ma scelte a caso tra le celle calpestabili non di accesso.
+
+    Serve a isolare la variabile giusta. Confrontando B1 (che uccide K celle di
+    porta) con questo controllo (che ne uccide K a caso), l'unica differenza e'
+    QUALI celle vengono colpite, non quante: se il controllo riesce e B1 no, il
+    problema sono le porte, non l'estensione del danno.
+    """
+    def apply(state, room, rng):
+        room_np = np.asarray(room)
+        k = int(selector(room_np, rng, **kwargs).sum())
+        mask = np.zeros(room_np.shape, dtype=bool)
+        pool = np.flatnonzero((walkable_mask(room_np) & ~access_mask(room_np)).ravel())
+        if k > 0 and len(pool) > 0:
+            chosen = rng.choice(pool, size=min(k, len(pool)), replace=False)
+            mask.ravel()[np.atleast_1d(chosen)] = True
+        return kill_cells(state, mask)
+    return apply
 
 def _no_damage():
     """Controllo senza danno: verifica che l'NCA sia un attrattore stabile.
@@ -63,6 +84,8 @@ def damage_suite(fractions=(0.2, 0.4, 0.6)):
     for f in fractions:
         suite.append(("A1_erasure", f, _stochastic_damage(erasure, f), always, True))
         suite.append(("A2_tileflip", f, _stochastic_damage(tile_flip, f), always, True))
+        suite.append(("A3_matched_random", 1,
+                  _matched_random(TARGETED["B1_door"], n_doors=1), always, True))
     suite.append(("B1_door", 1, _targeted_damage(TARGETED["B1_door"], n_doors=1), always, True))
     suite.append(("B2_wall", 5, _targeted_damage(TARGETED["B2_wall"], length=5), always, False))
     suite.append(("B3_isolation", 1, _targeted_damage(TARGETED["B3_isolation"]), always, True))
