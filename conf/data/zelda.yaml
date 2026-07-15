@@ -1,0 +1,5 @@
+# Dati e split.
+cache: data/processed/rooms.npz
+val_fraction: 0.15
+test_fraction: 0.15
+augment: true          # 4 simmetrie, applicate solo al train

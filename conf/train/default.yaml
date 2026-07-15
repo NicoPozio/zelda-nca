@@ -1,0 +1,26 @@
+# Iperparametri del training dell'NCA.
+
+lr: 1.0e-3             # learning rate di Adam
+steps: 8000            # numero di iterazioni di ottimizzazione
+batch_size: 8          # stanze per batch, pescate dal sample pool
+
+# Sample pool: buffer di stati persistenti da cui si pescano i batch.
+pool_size: 1024
+
+# Backpropagation through time: a ogni iterazione si srotola l'NCA per un numero
+# di passi campionato a caso in [bptt_min, bptt_max]. Variare l'orizzonte aiuta la
+# stabilita' ed e' una delle ablation.
+bptt_min: 64
+bptt_max: 96
+
+# Difesa contro l'exploding gradient: norma massima del gradiente prima dello step.
+grad_clip: 1.0
+
+# Ogni quanti step salvare un checkpoint (per riprendere le sessioni Kaggle interrotte).
+checkpoint_every: 1000
+
+# Run corta di prova: se > 0, sovrascrive 'steps' con questo valore per misurare
+# il tempo/step reale prima di lanciare i training lunghi. 0 = disattivata.
+smoke_steps: 0
+damage_prob: 0.5              # frazione del batch a cui applicare danno stocastico
+damage_fractions: [0.2, 0.4, 0.6]   # estensioni del danno di training tra cui campionare

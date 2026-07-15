@@ -1,0 +1,6 @@
+#Iperparametri del modello NCA.
+#hidden_channels e' il principale oggetto di ablation (vedi lo sweep nel README).
+
+hidden_channels: 12    # canali nascosti; lo stato totale ha 10 + hidden_channels canali
+mlp_hidden: 128        # larghezza dello strato interno della MLP di update (Conv 1x1)
+update_prob: 0.5       # probabilita' che una cella si aggiorni a ogni passo (update stocastico)
