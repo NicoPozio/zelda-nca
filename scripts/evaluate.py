@@ -88,7 +88,8 @@ def main(cfg: DictConfig):
     rows = evaluate(nca, rooms, steps=cfg.eval.steps,
                     hidden_channels=mcfg.hidden_channels,
                     seeds=tuple(cfg.eval.seeds), device=device,
-                    fractions=tuple(cfg.train.damage_fractions))
+                    fractions=tuple(cfg.eval.fractions))
+
     agg = aggregate(rows)
     print_table(agg)
 
