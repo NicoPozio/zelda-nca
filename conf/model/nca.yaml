@@ -1,7 +1,6 @@
 # Iperparametri del modello NCA.
-# hidden_channels, mlp_hidden e use_laplacian sono gli assi delle ablation.
-
-hidden_channels: 12    # canali nascosti; lo stato ha 10 + hidden_channels canali
-mlp_hidden: 128        # larghezza dello strato interno della MLP di update
-update_prob: 0.5       # probabilita' di update per cella (confermato dal paper)
-use_laplacian: false   # aggiunge il Laplaciano ai filtri di percezione
+arch: nca
+hidden_channels: 12
+mlp_hidden: 128
+update_prob: 0.5
+use_laplacian: false

@@ -22,7 +22,7 @@ from omegaconf import DictConfig, OmegaConf
 from src.data.splits import train_val_test_split
 from src.eval.runner import aggregate, evaluate
 from src.models.nca import NCA
-
+from src.models.factory import build_model
 
 def pick_device(choice):
     if choice == "auto":
@@ -73,10 +73,7 @@ def main(cfg: DictConfig):
     rooms = {"train": train, "val": val, "test": test}[cfg.eval.split]
 
     mcfg = model_cfg_of(cfg.eval.ckpt, cfg.model)
-    nca = NCA(hidden_channels=mcfg.hidden_channels,
-              mlp_hidden=mcfg.mlp_hidden,
-              update_prob=mcfg.update_prob,
-              use_laplacian=mcfg.use_laplacian).to(device)
+    nca = build_model(mcfg).to(device)
     ckpt = torch.load(cfg.eval.ckpt, map_location=device)
     nca.load_state_dict(ckpt["nca"])
     print(f"checkpoint: {cfg.eval.ckpt}  (step {ckpt['step']})  "

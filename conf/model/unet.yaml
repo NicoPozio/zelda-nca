@@ -1,0 +1,11 @@
+# U-Net: baseline globale per isolare la localita' dell'NCA.
+# Gli stessi campi dell'NCA vengono comunque letti dagli script comuni con dei
+# default, ma qui contano solo questi.
+arch: unet
+hidden_channels: 12    # tenuto per parita' di interfaccia (l'U-Net non lo sfrutta)
+base: 32               # canali del primo livello
+iterative: true        # true = usato nel loop iterativo; false = one-shot
+# campi ignorati dall'U-Net ma letti dagli script comuni:
+mlp_hidden: 128
+update_prob: 0.5
+use_laplacian: false

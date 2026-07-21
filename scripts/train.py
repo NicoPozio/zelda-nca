@@ -31,6 +31,7 @@ from src.data.augment import augment
 from src.models.nca import NCA
 from src.train.pool import SamplePool
 from src.train.trainer import Trainer
+from src.models.factory import build_model
 
 
 def pick_device(choice):
@@ -54,10 +55,7 @@ def main(cfg: DictConfig):
     print(f"device={device} | train {len(train)}  val {len(val)}  test {len(test)}")
 
     # modello, pool, trainer
-    nca = NCA(hidden_channels=cfg.model.hidden_channels,
-              mlp_hidden=cfg.model.mlp_hidden,
-              update_prob=cfg.model.update_prob,
-              use_laplacian=cfg.model.use_laplacian)
+    nca = build_model(cfg.model).to(device)
     pool = SamplePool(train, pool_size=cfg.train.pool_size,
                       hidden_channels=cfg.model.hidden_channels,
                       device=device, seed=cfg.seed)
