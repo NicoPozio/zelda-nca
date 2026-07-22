@@ -58,11 +58,13 @@ def main(cfg: DictConfig):
     nca = build_model(cfg.model).to(device)
     pool = SamplePool(train, pool_size=cfg.train.pool_size,
                       hidden_channels=cfg.model.hidden_channels,
-                      device=device, seed=cfg.seed)
+                      device=device, seed=cfg.seed,
+                      with_aux=cfg.train.aux_weight > 0)
     trainer = Trainer(nca, pool, lr=cfg.train.lr, grad_clip=cfg.train.grad_clip,
                       bptt_min=cfg.train.bptt_min, bptt_max=cfg.train.bptt_max,
                       batch_size=cfg.train.batch_size, damage_prob=cfg.train.damage_prob,
-                      damage_fractions=cfg.train.damage_fractions, device=device, seed=cfg.seed)
+                      damage_fractions=cfg.train.damage_fractions, device=device,
+                      seed=cfg.seed, aux_weight=cfg.train.aux_weight)
 
     # checkpoint e log nella cartella di output di questa run (unica per run e per
     # job del multirun: cosi' le ablation non si sovrascrivono il checkpoint)

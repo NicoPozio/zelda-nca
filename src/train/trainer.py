@@ -4,6 +4,13 @@
 # un numero casuale di passi (BPTT), calcola la CrossEntropy sui canali visibili
 # rispetto al target intatto, aggiorna i pesi e riscrive gli stati nel pool.
 #
+# Ramo multitask (aux_weight > 0): oltre alla ricostruzione si supervisiona il
+# PRIMO canale nascosto verso il campo di distanza dall'accesso piu' vicino. I
+# canali non cambiano di numero, quindi M2 e M2aux hanno esattamente la stessa
+# architettura e lo stesso numero di parametri: l'unica variabile e' il termine di
+# loss in piu'. In inferenza i canali nascosti non vengono decodificati, quindi la
+# metrica non e' contaminata.
+#
 # Difese contro l'instabilita' del BPTT (le altre stanno in nca.py):
 #  - clip della norma del gradiente prima dello step (contro l'exploding);
 #    il paper usa una normalizzazione L2 per-variabile, il clip e' l'equivalente
@@ -19,12 +26,13 @@ from torch.optim import Adam
 
 from src.models.encoding import to_nca_state, visible_channels
 from src.damage.stochastic import erasure, tile_flip
+from src.tiles import NUM_TILES
 
 
 class Trainer:
 
     def __init__(self, nca, pool, *, lr, grad_clip, bptt_min, bptt_max, batch_size,
-                 damage_prob, damage_fractions, device="cpu", seed=0):
+                 damage_prob, damage_fractions, device="cpu", seed=0, aux_weight=0.0):
         """Args:
             nca: il modello NCA.
             pool: il SamplePool con le stanze di training.
@@ -36,6 +44,7 @@ class Trainer:
             damage_fractions: lista di estensioni del danno tra cui campionare.
             device: 'cpu' o 'cuda'.
             seed: seme per danno, unroll e reseed.
+            aux_weight: peso lambda del termine ausiliario; 0 disattiva il multitask.
         """
         self.nca = nca.to(device)
         self.pool = pool
@@ -48,7 +57,9 @@ class Trainer:
         self.damage_fractions = list(damage_fractions)
         self.device = device
         self.rng = np.random.default_rng(seed)
+        self.aux_weight = aux_weight
         self.step = 0
+        self.last_aux_loss = 0.0
 
     def _damage_batch(self, states, skip):
         """Danneggia una parte del batch con A1 o A2, saltando l'indice reseedato."""
@@ -64,6 +75,18 @@ class Trainer:
         damaged, _ = fn(states[idxs], self.rng, frac)
         states[idxs] = damaged
         return states
+
+    def _aux_loss(self, states, slots):
+        """MSE tra il primo canale nascosto e il campo di distanza dall'accesso.
+
+        Il bersaglio viene dalla stanza intatta mentre l'ingresso e' danneggiato:
+        il modello deve inferire la topologia corretta, non copiarla.
+        """
+        target = self.pool.aux_for_slots(slots)
+        if target is None:
+            return None
+        pred = states[:, NUM_TILES:NUM_TILES + target.shape[1]]
+        return F.mse_loss(pred, target.to(self.device))
 
     def train_step(self):
         slots, states, targets = self.pool.sample(self.batch_size)
@@ -88,6 +111,12 @@ class Trainer:
             states = self.nca(states)
 
         loss = F.cross_entropy(visible_channels(states), targets)
+        if self.aux_weight > 0:
+            aux = self._aux_loss(states, slots)
+            if aux is not None:
+                self.last_aux_loss = float(aux.item())
+                loss = loss + self.aux_weight * aux
+
         self.opt.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(self.nca.parameters(), self.grad_clip)
