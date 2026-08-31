@@ -14,9 +14,10 @@ def build_model(model_cfg):
     arch = model_cfg.get("arch", "nca")
     if arch == "nca":
         return NCA(hidden_channels=model_cfg.hidden_channels,
-                   mlp_hidden=model_cfg.mlp_hidden,
-                   update_prob=model_cfg.update_prob,
-                   use_laplacian=model_cfg.use_laplacian)
+                mlp_hidden=model_cfg.mlp_hidden,
+                update_prob=model_cfg.update_prob,
+                use_laplacian=model_cfg.use_laplacian,
+                global_channels=model_cfg.get("global_channels", 0))
     if arch == "unet":
         return UNet(hidden_channels=model_cfg.hidden_channels,
                     base=model_cfg.get("base", 32),

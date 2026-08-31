@@ -4,3 +4,4 @@ hidden_channels: 12
 mlp_hidden: 128
 update_prob: 0.5
 use_laplacian: false
+global_channels: 0

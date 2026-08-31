@@ -26,8 +26,11 @@ def main():
     parser.add_argument("--dedup", default="symmetry", choices=["none", "exact", "symmetry"])
     args = parser.parse_args()
 
+    #Estrazione stanze e lista di percorsi room:i,j
     rooms, sources = extract_rooms(args.raw_dir, to_visual=True)
+    #Deduplica le stanze, restituisce anche inidici delle stanze uniche
     uniq, idx = deduplicate(rooms, mode=args.dedup, return_index=True)
+    #Crea un array numpy con la lista dei percorsi
     kept_sources = np.array([sources[i] for i in idx])
 
     os.makedirs(os.path.dirname(args.out), exist_ok=True)

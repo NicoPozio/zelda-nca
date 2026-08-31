@@ -51,15 +51,15 @@ def model_cfg_of(ckpt_path, fallback):
 def print_table(rows_agg):
     print(f"\n{'danno':<18}{'estensione':>11}{'topo':>6}{'stanze':>8}"
           f"{'RSR':>17}{'tile acc':>17}")
-    print("-" * 77)
+
+    
     for a in rows_agg:
         topo = "si" if a["topological"] else "no"
         print(f"{a['damage']:<18}{a['extent']:>11}{topo:>6}{a['n_rooms']:>8}"
               f"{a['rsr_mean']:>11.3f}±{a['rsr_std']:<5.3f}"
               f"{a['acc_mean']:>11.3f}±{a['acc_std']:<5.3f}")
-    print("\nRSR = frazione di stanze che conservano accessi e connettivita' dell'intatta.")
-    print("B2 e' segnato non-topologico: un danno ai muri non puo' spezzare la")
-    print("connettivita' per costruzione, quindi va letto sulla tile accuracy.")
+    print("\nRSR = Frazione di stanze che conservano accessi e connettività della componente principale intatta.")
+    print("B2 è segnato non-topologico: un danno ai muri non puo' spezzare la connettività, quindi va letto sulla tile accuracy.")
 
 
 @hydra.main(version_base=None, config_path="../conf", config_name="config")

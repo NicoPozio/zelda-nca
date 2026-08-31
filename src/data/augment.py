@@ -8,12 +8,13 @@ from src.data.symmetry import symmetries
 
 
 def augment(rooms):
-    """Espande le stanze con le loro 4 simmetrie, quadruplicando il train.
-
-    Nota: una stanza gia' simmetrica produce copie ripetute; e' dentro il train,
-    quindi non e' un problema di leakage, al massimo un lieve sovrappeso.
+    """
+    Espande il training set con le simmetrie, quadruplicandone le dimensioni
+    Non abbiamo problemi di leakage perchè l'augmentation viene fatta dopo 
+    lo split di train test e val
     """
     out = []
     for room in rooms:
+        #Perché non append?
         out.extend(symmetries(room))
     return np.stack(out)

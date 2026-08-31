@@ -54,12 +54,16 @@ def main(cfg: DictConfig):
         train = augment(train)
     print(f"device={device} | train {len(train)}  val {len(val)}  test {len(test)}")
 
-    # modello, pool, trainer
+    #Creazione NCA usando dati in nca.yaml
     nca = build_model(cfg.model).to(device)
+
+    #Creazione SamplePool
     pool = SamplePool(train, pool_size=cfg.train.pool_size,
                       hidden_channels=cfg.model.hidden_channels,
                       device=device, seed=cfg.seed,
                       with_aux=cfg.train.aux_weight > 0)
+
+    #Creazione Trainer
     trainer = Trainer(nca, pool, lr=cfg.train.lr, grad_clip=cfg.train.grad_clip,
                       bptt_min=cfg.train.bptt_min, bptt_max=cfg.train.bptt_max,
                       batch_size=cfg.train.batch_size, damage_prob=cfg.train.damage_prob,

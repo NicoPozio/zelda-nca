@@ -1,9 +1,9 @@
-"""File per il formato VGLC di The Legend of Zelda (NES).
+"""
+File per lettura dati .txt scaricati dal VGLC
 
 Unica fonte di verita' per la semantica dei tile: dati, loss, danno e metrica
 importano tutti da qui indici e regola di calpestabilita', cosi' "cos'e' un
 floor / una porta / un precipizio" e' definito in un solo posto.
-
 
 Geometria e orientamento (verificati sui dati + confronto col PNG del gioco):
   * Nel .txt una stanza e' 16 righe x 11 colonne (RAW_ROWS x RAW_COLS).
@@ -32,7 +32,7 @@ CHAR_MAP: dict[str, int] = {
     'I': 5, 'D': 6, 'S': 7, 'W': 8, '-': 9,
 }
 IDX_TO_CHAR: dict[int, str] = {v: k for k, v in CHAR_MAP.items()}
-NUM_TILES: int = len(CHAR_MAP)   #10 canali visibili (one-hot)
+NUM_TILES: int = len(CHAR_MAP)   #10 canali visibili
 
 TILE_NAMES: dict[str, str] = {
     'F': 'floor', 'B': 'block', 'M': 'monster', 'P': 'element', 'O': 'element+floor',
@@ -47,7 +47,7 @@ def walkable_mask(room, passable_element_floor: bool = True) -> np.ndarray:
     Calpestabili: F, D, M, S, O
 
     Caso speciale '-':
-      1) la stanza non ha neanche una casella floor F  -> stanza dove c'è l'anziano, '-' è calpestabile
+      1) la stanza non ha neanche una casella floor F  -> è una stanza segreta dove '-' è calpestabile
       2) la stanza ha delle caselle floor F -> i caratteri '-' sono precipizi, non calpestabili.
 
     Non calpestabili sempre: W (muro), B (block), P (elemento profondo),
@@ -60,7 +60,7 @@ def walkable_mask(room, passable_element_floor: bool = True) -> np.ndarray:
     walk_idx = [CHAR_MAP[c] for c in walk_chars]
     mask = np.isin(room, walk_idx)
 
-    # '-' calpestabile solo nelle stanze senza floor (anziano)
+    # '-' calpestabile solo se non ci sono altri caratteri nella stanza
     if not np.any(room == CHAR_MAP['F']):
         mask |= (room == CHAR_MAP['-'])
     return mask

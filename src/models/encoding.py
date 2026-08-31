@@ -2,11 +2,11 @@
 # Lo stato che l'NCA fa evolvere ha due parti: i canali visibili (one-hot dei 10
 # tile) e i canali nascosti, azzerati all'inizio, che servono alle celle per
 # comunicare. Il numero di nascosti e' un iperparametro (varia nelle ablation).
-from __future__ import annotations
 
+
+from __future__ import annotations
 import torch
 import torch.nn.functional as F
-
 from src.tiles import CHAR_MAP, NUM_TILES
 
 
@@ -64,8 +64,11 @@ def decode(state: torch.Tensor, dead_threshold: float = 1e-3,
     Returns:
         Tensore (N, H, W) di indici di tile.
     """
-    visible = visible_channels(state)
-    idx = visible.argmax(dim=1)
+    visible = visible_channels(state) #Visible è N, 10, H, W
+    """Per ogni tile di ogni stanza prendi l'indice della categoria più "votata" da 0 a 9"""
+    idx = visible.argmax(dim=1) 
+    """Facciamo una seconda selezione tra queste, e selezioniamo le celle che risultano morte"""
     dead = visible.max(dim=1).values < dead_threshold
+    """Per le celle che risultano dead mettiamo lo stato numerico di "-" che rappresenta il void"""
     idx = idx.masked_fill(dead, dead_tile)
     return idx

@@ -1,4 +1,5 @@
-"""Parsing ed estrazione delle stanze dal corpus VGLC (The Legend of Zelda, NES).
+"""
+Parsing ed estrazione delle stanze dal corpus VGLC (The Legend of Zelda, NES).
 
 Legge i file dungeon .txt, li affetta in stanze RAW_ROWS x RAW_COLS (16x11) e,
 di default, applica il transpose all'orientamento di gioco (11x16). La dedup NON
@@ -84,4 +85,5 @@ def extract_rooms(raw_dir: str, to_visual: bool = True) -> tuple[np.ndarray, lis
         for room, (i, j) in slice_dungeon(grid, to_visual=to_visual):
             rooms.append(room)
             sources.append(f"{os.path.basename(path)}:{i},{j}")
+    #Ritorna un tensore di stanze e lista
     return np.stack(rooms), sources
