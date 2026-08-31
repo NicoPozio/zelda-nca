@@ -65,6 +65,7 @@ def print_table(rows_agg):
 @hydra.main(version_base=None, config_path="../conf", config_name="config")
 def main(cfg: DictConfig):
     device = pick_device(cfg.device)
+    torch.manual_seed(cfg.seed)
 
     data = np.load(cfg.data.cache, allow_pickle=True)
     train, val, test = train_val_test_split(
