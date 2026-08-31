@@ -49,3 +49,4 @@ def deduplicate(rooms, mode="symmetry", return_index=False):
     #Solo le stanze uniche manteniamo, sono sempre ordinate in base a n, 
     #se cosi non fosse ogni volta gli split sarebbero diversi nonostante lo stesso seed.
     uniq = rooms[idx] 
+    return (uniq, idx) if return_index else uniq
