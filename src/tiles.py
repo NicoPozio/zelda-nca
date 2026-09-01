@@ -6,8 +6,8 @@ importano tutti da qui indici e regola di calpestabilita', cosi' "cos'e' un
 floor / una porta / un precipizio" e' definito in un solo posto.
 
 Geometria e orientamento (verificati sui dati + confronto col PNG del gioco):
-  * Nel .txt una stanza e' 16 righe x 11 colonne (RAW_ROWS x RAW_COLS).
-  * Il .txt e' memorizzato TRASPOSTO rispetto a come Zelda appare a schermo:
+  Nel .txt una stanza e' 16 righe x 11 colonne (RAW_ROWS x RAW_COLS).
+  *Il .txt e' memorizzato TRASPOSTO rispetto a come Zelda appare a schermo:
     trasponendo si torna all'orientamento di gioco (landscape). Applichiamo il
     transpose in fase di load come CONVENZIONE VISIVA deliberata (rende leggibili
     le figure dei Results). E' topologicamente irrilevante -- il transpose
@@ -25,8 +25,7 @@ RAW_COLS = 11   #colonne di una stanza nel file .txt
 ROOM_H = 11     #altezza stanza di lavoro
 ROOM_W = 16     #larghezza stanza di lavoro
 
-#Alfabeto canonico, l'ordine degli indici dipende solo
-#dall'ordine di apparenza nel readme di VGLC
+#Corrispondenza char-int mantenuta in tutto il progetto
 CHAR_MAP: dict[str, int] = {
     'F': 0, 'B': 1, 'M': 2, 'P': 3, 'O': 4,
     'I': 5, 'D': 6, 'S': 7, 'W': 8, '-': 9,
@@ -42,16 +41,15 @@ TILE_NAMES: dict[str, str] = {
 
 #Calpestabilità di una stanza
 def walkable_mask(room, passable_element_floor: bool = True) -> np.ndarray:
-    """Maschera booleana delle celle calpestabili di una stanza (indici tile).
+    """Maschera booleana delle celle calpestabili in una stanza
 
     Calpestabili: F, D, M, S, O
 
     Caso speciale '-':
       1) la stanza non ha neanche una casella floor F  -> è una stanza segreta dove '-' è calpestabile
-      2) la stanza ha delle caselle floor F -> i caratteri '-' sono precipizi, non calpestabili.
+      2) la stanza ha delle caselle floor F -> i caratteri '-' sono precipizi, non calpestabili
 
-    Non calpestabili sempre: W (muro), B (block), P (elemento profondo),
-    I (element+block).
+    Non calpestabili: W (muro), B (block), P (elemento profondo),I (element+block)
     """
     room = np.asarray(room)
     walk_chars = {'F', 'D', 'M', 'S'}
@@ -67,5 +65,5 @@ def walkable_mask(room, passable_element_floor: bool = True) -> np.ndarray:
 
 
 def door_mask(room) -> np.ndarray:
-    """Maschera booleana delle celle porta (target del BFS di connettivita')."""
+    """Maschera booleana delle celle Door di una stanza"""
     return np.asarray(room) == CHAR_MAP['D']
