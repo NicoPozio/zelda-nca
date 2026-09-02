@@ -152,7 +152,7 @@ The inference regime must match the training one: `eval.steps=1` for the one-sho
 
 All 77 runs of the study are published as a Kaggle dataset. Attaching it removes the need to retrain: each run directory holds `last.pt`, the Hydra config that produced it, and the evaluation CSV files for both splits.
 
-**Kaggle**: attach `niccolopozio/zelda-nca` via *Add Input*. The notebook detects it automatically and copies the runs into the working directory.
+**Kaggle**: attach `niccolopozio/zelda-nca-checkpoints/` via *Add Input*. The notebook detects it automatically and copies the runs into the working directory.
 
 | Run prefix | Description | Seeds |
 | :--- | :--- | :--- |
