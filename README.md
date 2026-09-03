@@ -6,6 +6,14 @@ This project asks whether a purely local update rule, trained only to reconstruc
 
 ---
 
+![Repairing a damaged room](qualitative.png)
+
+*Two damages that destroy the same number of cells: floor next to an access above,
+the access itself below. In both cases the repaired room no longer preserves the
+original connectivity.*
+
+---
+
 ## Research Question
 
 To what extent does a Neural Cellular Automaton with purely local rules restore the topological connectivity between a room's accesses and its main walkable area, and how does the outcome depend on the **target** of the damage rather than its **extent**?
@@ -88,12 +96,14 @@ zelda-nca/
 ```bash
 git clone https://github.com/NicoPozio/zelda-nca.git
 cd zelda-nca
-pip install -r requirements.txt
+uv sync
 python scripts/prepare_data.py
-python scripts/check_setup.py
+python scripts
 ```
 
-`prepare_data.py` extracts 236 rooms from the corpus and caches the 136 that are unique up to symmetry. `check_setup.py` verifies the installation with a micro-run of training and evaluation.
+Dependencies are managed with [uv](https://docs.astral.sh/uv/); `uv.lock` pins the exact versions. With pip, `pip install -e .` resolves them from `pyproject.toml` instead.
+
+`prepare_data.py` extracts 236 rooms from the corpus and caches the 136 that are unique up to symmetry. 
 
 Training requires a GPU; all experiments ran on a free Kaggle T4. A local CPU is sufficient for evaluation and analysis.
 
