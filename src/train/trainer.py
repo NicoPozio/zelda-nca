@@ -1,22 +1,4 @@
-# Loop di training dell'NCA, in regime di riparazione.
-# A ogni iterazione: pesca un batch dal pool, ripulisce il campione peggiore
-# (reseed), danneggia una parte del batch con danno stocastico, srotola l'NCA per
-# un numero casuale di passi (BPTT), calcola la CrossEntropy sui canali visibili
-# rispetto al target intatto, aggiorna i pesi e riscrive gli stati nel pool.
-#
-# Ramo multitask (aux_weight > 0): oltre alla ricostruzione si supervisiona il
-# PRIMO canale nascosto verso il campo di distanza dall'accesso piu' vicino. I
-# canali non cambiano di numero, quindi M2 e M2aux hanno esattamente la stessa
-# architettura e lo stesso numero di parametri: l'unica variabile e' il termine di
-# loss in piu'. In inferenza i canali nascosti non vengono decodificati, quindi la
-# metrica non e' contaminata.
-#
-# Difese contro l'instabilita' del BPTT (le altre stanno in nca.py):
-#  - clip della norma del gradiente prima dello step (contro l'exploding);
-#    il paper usa una normalizzazione L2 per-variabile, il clip e' l'equivalente
-#    piu' semplice e standard;
-#  - unroll di lunghezza variabile in [bptt_min, bptt_max];
-#  - il sample pool, che accorcia l'orizzonte effettivo del backprop.
+# Loop di training
 from __future__ import annotations
 
 import numpy as np
@@ -34,17 +16,17 @@ class Trainer:
     def __init__(self, nca, pool, *, lr, grad_clip, bptt_min, bptt_max, batch_size,
                  damage_prob, damage_fractions, device="cpu", seed=0, aux_weight=0.0):
         """Args:
-            nca: il modello NCA.
-            pool: il SamplePool con le stanze di training.
-            lr: learning rate di Adam.
-            grad_clip: norma massima del gradiente prima dello step.
-            bptt_min, bptt_max: estremi del numero di passi srotolati (compreso il max).
-            batch_size: stanze per iterazione.
-            damage_prob: frazione del batch a cui applicare danno stocastico.
-            damage_fractions: lista di estensioni del danno tra cui campionare.
+            nca: il modello NCA
+            pool: il SamplePool con le stanze di training
+            lr: learning rate
+            grad_clip: norma massima del gradiente
+            bptt_min, bptt_max: estremi del numero di iterazioni
+            batch_size: stanze per iterazione
+            damage_prob: frazione del batch a cui applicare danno
+            damage_fractions: possibili estensioni danno
             device: 'cpu' o 'cuda'.
             seed: seme per danno, unroll e reseed.
-            aux_weight: peso lambda del termine ausiliario; 0 disattiva il multitask.
+            aux_weight: peso del termine ausiliario (per NCA con BFS) 0 disattiva il multitask
         """
         self.nca = nca.to(device)
         self.pool = pool
@@ -62,7 +44,7 @@ class Trainer:
         self.last_aux_loss = 0.0
 
     def _damage_batch(self, states, skip):
-        """Danneggia una parte del batch con A1 o A2, saltando l'indice reseedato."""
+        """Danneggia una parte del batch con A1 o A2"""
         b = states.shape[0]
         candidates = [i for i in range(b) if i != skip]
         n_dmg = int(round(self.damage_prob * b))
@@ -77,10 +59,8 @@ class Trainer:
         return states
 
     def _aux_loss(self, states, slots):
-        """MSE tra il primo canale nascosto e il campo di distanza dall'accesso.
-
-        Il bersaglio viene dalla stanza intatta mentre l'ingresso e' danneggiato:
-        il modello deve inferire la topologia corretta, non copiarla.
+        """
+        MSE tra il primo canale nascosto e il campo di distanza dall'accesso
         """
         target = self.pool.aux_for_slots(slots)
         if target is None:
@@ -93,7 +73,7 @@ class Trainer:
         states = states.to(self.device)
         targets = targets.to(self.device)
 
-        # reseed del campione peggiore: rimette una stanza pulita, ripulendo il pool
+        #Ripristino campione peggiore
         with torch.no_grad():
             per_sample = F.cross_entropy(
                 visible_channels(states), targets, reduction="none"
@@ -102,10 +82,10 @@ class Trainer:
         clean = to_nca_state(targets[worst:worst + 1], self.pool.hidden_channels)
         states[worst] = clean.to(self.device)[0]
 
-        # danno stocastico sugli altri campioni
+        #Danno stocastico
         states = self._damage_batch(states, skip=worst)
 
-        # unroll BPTT per un numero di passi casuale
+        #Esecuzione modello
         n_steps = int(self.rng.integers(self.bptt_min, self.bptt_max + 1))
         for _ in range(n_steps):
             states = self.nca(states)

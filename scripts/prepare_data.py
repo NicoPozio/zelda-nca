@@ -1,10 +1,5 @@
-# Prepara il dataset di stanze a partire dai dungeon .txt.
-# Orchestra la pipeline dati: estrae le stanze, le deduplica e salva il risultato
-# in una cache .npz, cosi' il training non deve riparsare i .txt ogni volta.
-#
-# Uso:
-#   python scripts/prepare_data.py
-#   python scripts/prepare_data.py --raw-dir data/raw --out data/processed/rooms.npz
+# Prepara il dataset di stanze a partire dai file .txt
+
 from __future__ import annotations
 
 import argparse

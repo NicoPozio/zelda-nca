@@ -8,7 +8,7 @@ def train_val_test_split(rooms, val_fraction, test_fraction, seed):
     """Divide le stanze in (train, val, test) prendendo stanze intere
 
     Args:
-        rooms: array (M, H, W) di stanze dedotte
+        rooms: array (M, H, W) di stanze
         val_fraction: quota destinata alla validation
         test_fraction: quota destinata al test
         seed: seme della permutazione (deterministico)

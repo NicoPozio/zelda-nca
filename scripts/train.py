@@ -1,17 +1,7 @@
-# Entry-point di training con Hydra.
-# Legge i config da conf/, costruisce dati, modello, pool e trainer, e lancia il
-# training. Il device e' rilevato in automatico (cuda se disponibile).
-#
-# Uso:
-#   python scripts/train.py                                       # run singola
-#   python scripts/train.py train.smoke_steps=300                 # run corta di prova
-#   python scripts/train.py -m model.hidden_channels=8,12,16,24   # ablation (multirun)
-#   python scripts/train.py -m model.use_laplacian=false,true
-#   python scripts/train.py -m model.mlp_hidden=64,128,256
-#
-# Nota Kaggle: Hydra crea una cartella di run nuova a ogni invocazione, quindi per
-# riprendere una sessione interrotta bisogna puntare alla stessa cartella con
-# hydra.run.dir=<percorso fisso su storage persistente>.
+#Entry-point di training con Hydra
+#Legge i config da conf/, costruisce dati, modello, pool e trainer, e lancia il
+#training. Il device e' rilevato in automatico (cuda se disponibile)
+
 from __future__ import annotations
 
 import os
@@ -45,7 +35,6 @@ def main(cfg: DictConfig):
     device = pick_device(cfg.device)
     torch.manual_seed(cfg.seed)
 
-    # dati: carico la cache, divido, aumento solo il train
     data = np.load(cfg.data.cache, allow_pickle=True)
     train, val, test = train_val_test_split(
         data["rooms"], cfg.data.val_fraction, cfg.data.test_fraction, seed=cfg.seed
@@ -70,8 +59,7 @@ def main(cfg: DictConfig):
                       damage_fractions=cfg.train.damage_fractions, device=device,
                       seed=cfg.seed, aux_weight=cfg.train.aux_weight)
 
-    # checkpoint e log nella cartella di output di questa run (unica per run e per
-    # job del multirun: cosi' le ablation non si sovrascrivono il checkpoint)
+
     out_dir = HydraConfig.get().runtime.output_dir
     ckpt = os.path.join(out_dir, "last.pt")
     if os.path.exists(ckpt):

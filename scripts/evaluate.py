@@ -3,10 +3,7 @@
 # Uso:
 #   python scripts/evaluate.py eval.ckpt=/kaggle/working/runs/m2/last.pt
 #   python scripts/evaluate.py eval.ckpt=... eval.split=val eval.steps=96
-#
-# Il default e' il test set: usalo solo per i numeri finali del report. Durante le
-# ablation usa eval.split=val, altrimenti scegli gli iperparametri guardando il
-# test e i numeri finali risultano ottimistici.
+
 from __future__ import annotations
 
 import os
@@ -32,11 +29,6 @@ def pick_device(choice):
 
 def model_cfg_of(ckpt_path, fallback):
     """Legge la configurazione del modello dalla run che ha prodotto il checkpoint.
-
-    Hydra salva il config risolto in <run_dir>/.hydra/config.yaml. Usarlo evita di
-    dover ripetere a mano gli override in valutazione: se il checkpoint viene da
-    una run con hidden_channels=24, il modello viene ricostruito con 24 e i pesi
-    si caricano. Senza questo, un override dimenticato darebbe un errore di shape.
     """
     saved = os.path.join(os.path.dirname(ckpt_path), ".hydra", "config.yaml")
     if os.path.exists(saved):
