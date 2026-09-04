@@ -1,5 +1,5 @@
 """
-Rendering helpers for the explanatory notebook.
+Funzioni helper per visualizzazione risultati nel notebook
 """
 from __future__ import annotations
 
@@ -9,8 +9,7 @@ from matplotlib.colors import ListedColormap
 
 from src.tiles import CHAR_MAP, IDX_TO_CHAR, NUM_TILES
 
-# One colour per tile, ordered by tile index. Walkable tiles are light, obstacles
-# dark, so that traversability is readable at a glance.
+#Colori chiari per tiles calpestabili, scuri per tiles non calpestabili
 TILE_COLOURS = {
     "F": "#e8dcc8",   # floor
     "B": "#8a7a63",   # block
@@ -27,14 +26,15 @@ _CMAP = ListedColormap([TILE_COLOURS[IDX_TO_CHAR[i]] for i in range(NUM_TILES)])
 
 
 def render_room(room, ax=None, title=None, letters=False, highlight=None):
-    """Draw a room as a colour grid.
+    """
+    Funzione per disegnare una stanza come griglia colorata
 
     Args:
-        room: (H, W) array of tile indices.
-        ax: existing axes, or None to create one.
-        title: optional axes title.
-        letters: overlay the tile character on each cell.
-        highlight: optional boolean mask; marked cells get a red outline.
+        room: (H, W) array con gli indici delle tile
+        ax: asse esistente o None se non esiste
+        title: titolo opzionale dell'asse
+        letters: se True inserisce il carattere specifico sopra ogni tile
+        highlight: maschera booleana opzionale, le celle segnalate hanno un contorno rosso
     """
     room = np.asarray(room)
     if ax is None:
@@ -58,7 +58,7 @@ def render_room(room, ax=None, title=None, letters=False, highlight=None):
 
 
 def render_mask(mask, ax=None, title=None):
-    """Draw a boolean mask as a two-tone grid."""
+    """Funzione per visualizzare una maschera booleana come una griglia bicolore"""
     if ax is None:
         _, ax = plt.subplots(figsize=(mask.shape[1] * 0.22, mask.shape[0] * 0.22))
     ax.imshow(np.asarray(mask), cmap=ListedColormap(["#2b2b2b", "#7dc47d"]),
@@ -70,7 +70,7 @@ def render_mask(mask, ax=None, title=None):
 
 
 def render_components(room, ax=None, title=None, passable_element_floor=True):
-    """Draw connected components of walkable cells, one colour per component."""
+    """Funzione per visualizzare le componenti connesse di una stanza"""
     from src.metrics.connectivity import walkable_components
     labels, n = walkable_components(room, passable_element_floor)
     palette = ["#2b2b2b"] + ["#7dc47d", "#d9a441", "#c8705f", "#7fa8c4",
@@ -86,5 +86,5 @@ def render_components(room, ax=None, title=None, passable_element_floor=True):
 
 
 def parse_room(rows):
-    """Build a room from a list of character strings. Used for hand-made cases."""
+    """Costruisci una stanza da una lista di caratteri, usata solo per esempi hand-made"""
     return np.array([[CHAR_MAP[c] for c in r] for r in rows], dtype=np.int64)

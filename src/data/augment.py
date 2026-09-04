@@ -1,5 +1,4 @@
-# Augmentation delle stanze tramite le 4 simmetrie che preservano la forma.
-# Da applicare solo al train, dopo lo split, per non creare leakage.
+# Augmentation delle stanze tramite le 4 simmetrie che preservano la forma
 from __future__ import annotations
 
 import numpy as np

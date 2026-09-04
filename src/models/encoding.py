@@ -1,7 +1,4 @@
-# Costruzione dello stato NCA a partire dalle stanze in indici di tile.
-# Lo stato che l'NCA fa evolvere ha due parti: i canali visibili (one-hot dei 10
-# tile) e i canali nascosti, azzerati all'inizio, che servono alle celle per
-# comunicare. Il numero di nascosti e' un iperparametro (varia nelle ablation).
+#Costruzione stato a partire dalle stanze
 
 
 from __future__ import annotations
@@ -11,60 +8,54 @@ from src.tiles import CHAR_MAP, NUM_TILES
 
 
 def to_one_hot(rooms: torch.Tensor) -> torch.Tensor:
-    """Converte stanze di indici in one-hot, il target della CrossEntropy.
+    """One-hot encoding delle stanze
 
     Args:
-        rooms: tensore (N, H, W) di indici di tile (interi in [0, NUM_TILES)).
+        rooms: tensore (N, H, W) con interi 
 
     Returns:
-        Tensore (N, NUM_TILES, H, W) float con l'one-hot sui canali visibili.
+        tensore (N, NUM_TILES, H, W) one-hot encoded
     """
-    one_hot = F.one_hot(rooms.long(), num_classes=NUM_TILES)   # (N, H, W, C)
-    return one_hot.permute(0, 3, 1, 2).float()                 # (N, C, H, W)
+    one_hot = F.one_hot(rooms.long(), num_classes=NUM_TILES)   
+    return one_hot.permute(0, 3, 1, 2).float()                 
 
 
 def to_nca_state(rooms: torch.Tensor, hidden_channels: int) -> torch.Tensor:
-    """Costruisce lo stato NCA: canali visibili one-hot piu' i nascosti azzerati.
+    """Aggiunge i canali nascosti
 
     Args:
-        rooms: tensore (N, H, W) di indici di tile.
-        hidden_channels: numero di canali nascosti (iperparametro, varia nelle ablation).
+        rooms: tensore (N, H, W) 
+        hidden_channels: numero di canali nascosti
 
     Returns:
-        Tensore (N, NUM_TILES + hidden_channels, H, W) float; i canali visibili
-        contengono l'one-hot, i nascosti sono a zero.
+        tensore (N, NUM_TILES + hidden_channels, H, W)
     """
-    visible = to_one_hot(rooms)                                # (N, NUM_TILES, H, W)
+    visible = to_one_hot(rooms)                               
     n, _, h, w = visible.shape
     hidden = torch.zeros((n, hidden_channels, h, w), dtype=visible.dtype, device=visible.device)
     return torch.cat([visible, hidden], dim=1)
 
 
 def visible_channels(state: torch.Tensor) -> torch.Tensor:
-    """Estrae i soli canali visibili da uno stato NCA (per loss e decodifica)."""
+    """Estrazione canali visibili (serve per loss e decodifica)"""
     return state[:, :NUM_TILES]
 
 def decode(state: torch.Tensor, dead_threshold: float = 1e-3,
            dead_tile: int = CHAR_MAP['-']) -> torch.Tensor:
-    """Decodifica uno stato NCA in indici di tile.
+    """Decodifica uno stato NCA in una stanza vera e propria
 
-    Una cella i cui canali visibili sono tutti sotto soglia non contiene nessun
-    tile: e' una cella morta che il modello non ha mai riempito. Va decodificata
-    esplicitamente, non con un argmax che su un vettore di zeri restituirebbe
-    l'indice 0 (cioe' un tile a caso, deciso dall'ordine dell'alfabeto).
-    Il default e' il void: una cella morta non contiene nulla, e void e' proprio
-    il tile del nulla. Nelle stanze con pavimento il void e' un precipizio, quindi
-    non calpestabile: e' la scelta conservativa per una metrica di giocabilita'.
+    (Se in una cella i canali visibili sono tutti sotto una certa soglia non contiene nessun
+    tile viene considerata come void, quindi come cella non calpestabile)
 
     Args:
-        state: stato NCA (N, C, H, W).
-        dead_threshold: soglia sotto la quale un canale e' considerato spento.
-        dead_tile: indice del tile con cui decodificare le celle morte.
+        state: stato NCA (N, C, H, W)
+        dead_threshold: soglia sotto la quale un canale e' considerato spento
+        dead_tile: indice del tile con cui decodificare le celle morte
 
     Returns:
-        Tensore (N, H, W) di indici di tile.
+        tensore (N, H, W) di indici di tile
     """
-    visible = visible_channels(state) #Visible è N, 10, H, W
+    visible = visible_channels(state)
     """Per ogni tile di ogni stanza prendi l'indice della categoria più "votata" da 0 a 9"""
     idx = visible.argmax(dim=1) 
     """Facciamo una seconda selezione tra queste, e selezioniamo le celle che risultano morte"""

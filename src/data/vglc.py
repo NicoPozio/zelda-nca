@@ -1,10 +1,5 @@
 """
-Parsing ed estrazione delle stanze dal corpus VGLC (The Legend of Zelda, NES).
-
-Legge i file dungeon .txt, li affetta in stanze RAW_ROWS x RAW_COLS (16x11) e,
-di default, applica il transpose all'orientamento di gioco (11x16). La dedup NON
-avviene qui: e' un modulo separato (dedup.py), cosi' si possono ispezionare anche
-le stanze grezze coi duplicati.
+Parsing ed estrazione delle stanze dal corpus VGLC
 """
 from __future__ import annotations
 
@@ -19,15 +14,15 @@ VOID = CHAR_MAP['-']
 
 
 def parse_dungeon(path: str) -> np.ndarray:
-    """Legge un file dungeon in un array 2D di indici tile (righe ragged paddate a void)."""
+    """Legge un file e restituisce un array"""
     lines = [ln.rstrip('\n') for ln in open(path, encoding='utf-8') if ln.strip('\n') != '']
     if not lines:
         raise ValueError(f"File dungeon vuoto: {path}")
     width = max(len(ln) for ln in lines)
-    lines = [ln.ljust(width, '-') for ln in lines]      # pad righe irregolari con void
+    lines = [ln.ljust(width, '-') for ln in lines]      
     try:
         grid = np.array([[CHAR_MAP[c] for c in row] for row in lines], dtype=np.int64)
-    except KeyError as e:                                # carattere fuori alfabeto -> fail loud
+    except KeyError as e:                               
         raise ValueError(f"Carattere fuori alfabeto {e!s} in {os.path.basename(path)}") from e
     h, w = grid.shape
     if h % RAW_ROWS or w % RAW_COLS:
@@ -39,15 +34,13 @@ def parse_dungeon(path: str) -> np.ndarray:
 
 
 def _is_real_room(room: np.ndarray) -> bool:
-    """Stanza reale = non interamente void (scarta gli slot di stanza assenti)."""
+    """Verifica che sia effettivamente una stanza"""
     return not np.all(room == VOID)
 
 
 def slice_dungeon(grid: np.ndarray, to_visual: bool = True) -> list[tuple[np.ndarray, tuple[int, int]]]:
-    """Affetta un dungeon in stanze reali. Con to_visual traspone alla vista di gioco.
-
-    Il transpose preserva la 4-adiacenza: la topologia e' invariata, cambia solo
-    l'orientamento (11x16, landscape come il gioco).
+    """
+    Separa il dungeon in array multipli ognuno rappresentante una vera stanza
     """
     gr, gc = grid.shape[0] // RAW_ROWS, grid.shape[1] // RAW_COLS
     out = []
@@ -57,20 +50,20 @@ def slice_dungeon(grid: np.ndarray, to_visual: bool = True) -> list[tuple[np.nda
             if not _is_real_room(room):
                 continue
             if to_visual:
-                room = room.T                            # -> orientamento di gioco
+                room = room.T                           
             out.append((room.copy(), (i, j)))
     return out
 
 
 def extract_rooms(raw_dir: str, to_visual: bool = True) -> tuple[np.ndarray, list[str]]:
-    """Estrae tutte le stanze reali dai file dungeon in raw_dir.
+    """Estrae tutte le stanze dai file .txt
 
     Args:
-        raw_dir: cartella con i file dungeon .txt.
-        to_visual: applica il transpose all'orientamento di gioco (11x16).
+        raw_dir: cartella con i file
+        to_visual: applica il transpose agli array delle stanze
 
     Returns:
-        (rooms, sources): array (N, H, W) e lista parallela di tag "file:i,j".
+        (rooms, sources): array (N, H, W) e lista parallela di tag "file:i,j"
     """
     files = sorted(
         f for f in glob.glob(os.path.join(raw_dir, '*.txt'))
@@ -85,5 +78,5 @@ def extract_rooms(raw_dir: str, to_visual: bool = True) -> tuple[np.ndarray, lis
         for room, (i, j) in slice_dungeon(grid, to_visual=to_visual):
             rooms.append(room)
             sources.append(f"{os.path.basename(path)}:{i},{j}")
-    #Ritorna un tensore di stanze e lista
+
     return np.stack(rooms), sources

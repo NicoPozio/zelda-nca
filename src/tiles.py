@@ -1,18 +1,5 @@
 """
 File per lettura dati .txt scaricati dal VGLC
-
-Unica fonte di verita' per la semantica dei tile: dati, loss, danno e metrica
-importano tutti da qui indici e regola di calpestabilita', cosi' "cos'e' un
-floor / una porta / un precipizio" e' definito in un solo posto.
-
-Geometria e orientamento (verificati sui dati + confronto col PNG del gioco):
-  Nel .txt una stanza e' 16 righe x 11 colonne (RAW_ROWS x RAW_COLS).
-  *Il .txt e' memorizzato TRASPOSTO rispetto a come Zelda appare a schermo:
-    trasponendo si torna all'orientamento di gioco (landscape). Applichiamo il
-    transpose in fase di load come CONVENZIONE VISIVA deliberata (rende leggibili
-    le figure dei Results). E' topologicamente irrilevante -- il transpose
-    preserva la 4-adiacenza -- ma comodo. Dopo il transpose la stanza di lavoro
-    e' ROOM_H x ROOM_W = 11 x 16.
 """
 
 from __future__ import annotations

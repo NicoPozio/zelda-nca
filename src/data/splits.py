@@ -1,26 +1,20 @@
-# Split train/val/test a livello di stanza.
-# Si fa sulle stanze gia' deduplicate, cosi' una stanza (o una sua simmetria) non
-# puo' finire in due insiemi diversi. Il test resta intatto per il numero finale.
-#
-# Perche' tre insiemi e non due: la val serve a scegliere gli iperparametri durante
-# le ablation, il test a misurare la performance finale. Se la val facesse entrambe
-# le cose, il risultato finale sarebbe distorto (avresti gia' "sbirciato").
+#Split train/val/test
 from __future__ import annotations
 
 import numpy as np
 
 
 def train_val_test_split(rooms, val_fraction, test_fraction, seed):
-    """Divide le stanze in (train, val, test) prendendo stanze intere.
+    """Divide le stanze in (train, val, test) prendendo stanze intere
 
     Args:
-        rooms: array (M, H, W) di stanze dedotte.
-        val_fraction: quota destinata alla validation.
-        test_fraction: quota destinata al test.
-        seed: seme della permutazione (deterministico).
+        rooms: array (M, H, W) di stanze dedotte
+        val_fraction: quota destinata alla validation
+        test_fraction: quota destinata al test
+        seed: seme della permutazione (deterministico)
 
     Returns:
-        (train, val, test).
+        (train, val, test)
     """
     if not 0.0 <= val_fraction < 1.0 or not 0.0 <= test_fraction < 1.0:
         raise ValueError("le frazioni devono stare in [0, 1)")

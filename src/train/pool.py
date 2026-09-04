@@ -1,17 +1,4 @@
-# Sample pool per il training dell'NCA.
-# E' un buffer di stati persistenti: a ogni iterazione si pesca un batch, lo si fa
-# evolvere per alcuni passi e lo si riscrive nel pool. Cosi' il training riparte da
-# stati gia' parzialmente ricostruiti invece che da zero, il che stabilizza il BPTT
-# e insegna all'NCA a mantenere stabile una stanza valida.
-#
-# A differenza del Growing NCA classico (un solo target), qui ci sono molte stanze
-# diverse: ogni slot ricorda la propria stanza target, cosi' la loss confronta
-# ciascuno stato con la stanza giusta.
-#
-# Con with_aux il pool tiene anche il bersaglio topologico ausiliario (il campo di
-# distanza dall'accesso piu' vicino) per il ramo multitask. I campi si calcolano una
-# volta sola all'avvio per tutte le stanze del dataset: il BFS su 11x16 e' immediato
-# ma rifarlo a ogni reseed sarebbe spreco.
+#Sample pool per il training dell'NCA
 from __future__ import annotations
 
 import numpy as np

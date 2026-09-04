@@ -1,8 +1,4 @@
-#Deduplicazione delle stanze.
-#Zelda riusa gli stessi layout tra dungeon diversi.
-#Un template puo' comparire piu' volte, per evitare che stanze identiche finiscano
-#sia in train che in val facciamo un operazione di deduplicazione
-
+#Deduplicazione delle stanze
 
 
 from __future__ import annotations
@@ -20,10 +16,9 @@ def _canonical_key(room):
 
 
 def deduplicate(rooms, mode="symmetry", return_index=False):
-    """Restituisce le stanze uniche secondo l'equivalenza scelta.
-
-    mode: 'none' | 'exact' | 'symmetry'. Deterministico: tiene la prima occorrenza.
-    Con return_index restituisce anche gli indici delle stanze tenute.
+    """Restituisce le stanze uniche secondo il tipo di simmetria specificato
+    mode: 'none' | 'exact' | 'symmetry'
+    Con return_index restituisce anche gli indici delle stanze tenute
     """
 
     #Nessuna deduplicazione
@@ -31,7 +26,6 @@ def deduplicate(rooms, mode="symmetry", return_index=False):
         idx = list(range(len(rooms)))
         return (rooms, idx) if return_index else rooms
 
-    #Gestione errori
     if mode not in ("exact", "symmetry"):
         raise ValueError(f"mode sconosciuto: {mode!r}")
 

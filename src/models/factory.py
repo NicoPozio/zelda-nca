@@ -1,8 +1,6 @@
-# Costruisce il modello di riparazione dal config.
-#
-# NCA e U-Net condividono l'interfaccia (stato -> stato della stessa forma), quindi
-# pool, trainer e valutazione non sanno quale dei due stanno usando: basta scegliere
-# la classe qui. 'arch' nel config del modello seleziona l'architettura.
+
+"""Funzione wrapper per la costruzione del modello, in questo modo nello script di train
+possiamo costruire un Unet o un NCA nella stessa maniera"""
 from __future__ import annotations
 
 from src.models.nca import NCA
@@ -10,7 +8,7 @@ from src.models.unet import UNet
 
 
 def build_model(model_cfg):
-    """Istanzia il modello secondo model_cfg.arch ('nca' oppure 'unet')."""
+    """Istanzia il modello secondo model_cfg.arch ('nca' oppure 'unet')"""
     arch = model_cfg.get("arch", "nca")
     if arch == "nca":
         return NCA(hidden_channels=model_cfg.hidden_channels,

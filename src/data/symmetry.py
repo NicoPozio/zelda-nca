@@ -1,6 +1,5 @@
-# Le 4 simmetrie che preservano la forma 11x16 di una stanza.
-# Definite qui una volta sola: dedup e augment devono usare lo stesso gruppo,
-# altrimenti la garanzia "niente leakage tra train e val" non regge piu'.
+#Le 4 simmetrie che preservano la forma 11x16 di una stanza
+
 from __future__ import annotations
 
 
