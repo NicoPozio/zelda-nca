@@ -96,8 +96,8 @@ zelda-nca/
 git clone https://github.com/NicoPozio/zelda-nca.git
 cd zelda-nca
 uv sync
-python scripts/prepare_data.py
-python scripts
+uv run python scripts/prepare_data.py
+uv run pytest -q
 ```
 
 Dependencies are managed with [uv](https://docs.astral.sh/uv/); `uv.lock` pins the exact versions. With pip, `pip install -e .` resolves them from `pyproject.toml` instead.
