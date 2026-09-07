@@ -77,7 +77,6 @@ zelda-nca/
 │   ├── prepare_data.py              # Corpus to cached room array
 │   ├── train.py                     # Training entry point
 │   ├── evaluate.py                  # Evaluation entry point
-│   └── check_setup.py               # Verifies files, imports and a micro-run
 ├── notebooks/
 │   └── Zelda_NCA.ipynb              # Walkthrough of the whole project
 ├── tests/                           # 68 automated tests
